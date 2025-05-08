@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friendly Hangman Fun!</title>
+    <link rel="manifest" href="./manifest.json">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#007bff">
+    <style>
+        :root {
+            --friendly-blue: #007bff; 
+            --friendly-green: #28a745; 
+            --friendly-red: #dc3545;   
+            --friendly-yellow: #ffc107; 
+            --light-bg: #f0f8ff;      /* AliceBlue - very light and friendly */
+            --container-bg: #ffffff;
+            --text-dark: #343a40;     
+            --text-light: #6c757d;    
+            --border-light: #dee2e6;
+            --button-light-bg: #e9ecef;
+        }
+
+        @keyframes titleBounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-8px);}
+            60% {transform: translateY(-4px);}
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif; 
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; 
+            min-height: 100vh;
+            padding: 20px 10px; 
+            box-sizing: border-box;
+            overflow-x: hidden; /* Prevent horizontal scroll from subtle animations */
+
+            
+        }
+
+        .game-container {
+            background-color: var(--container-bg); 
+            padding: 25px;
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0, 91, 171, 0.15); 
+            width: 100%; 
+            max-width: 700px; 
+            text-align: center;
+            position: relative; 
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        h1.game-title {
+            font-family: 'Patrick Hand', cursive;
+            color: var(--friendly-blue); 
+            font-size: 2.8rem; 
+            margin-bottom: 25px; 
+            animation: titleBounce 1.5s ease-in-out 0.3s; /* Bounce on load */
+        }
+
+        #hangman-area {
+            min-height: 250px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px; 
+        }
+
+        #hangman-svg { width: 200px; height: 230px; }
+        #hangman-svg .figure-part { fill: transparent; stroke-linecap: round; opacity: 0; transition: opacity 0.4s ease-in-out; }
+        #hangman-svg .gallow-part { stroke: #ced4da; stroke-width: 8px; } 
+        #hangman-svg .rope-part { stroke: #adb5bd; stroke-width: 4px; } 
+        #hangman-svg .body-part { stroke: var(--friendly-blue); stroke-width: 5px; }
+        #hangman-svg .game-over-eye { stroke: var(--friendly-blue); stroke-width: 3px; display: none; fill: none; }
+        
+        #word-display {
+            font-family: 'Patrick Hand', cursive; 
+            font-size: 2.5rem; letter-spacing: 0.4em; margin-bottom: 20px; 
+            font-weight: normal; color: var(--text-dark); min-height: 50px; 
+        }
+
+        #keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+        #keyboard button {
+            width: 42px; height: 42px; font-size: 1.1rem; border-radius: 8px;
+            font-family: 'Nunito', sans-serif; font-weight: 700;
+            background-color: var(--button-light-bg); border: 1px solid var(--border-light); color: var(--text-dark);
+            transition: all 0.2s ease-in-out, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; /* Added transitions for state change */
+        }
+        #keyboard button:hover:not(:disabled) { 
+            transform: translateY(-3px); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            background-color: #dde1e4;
+        }
+        #keyboard button:focus-visible { /* Enhanced focus state */
+            outline: 2px solid var(--friendly-blue);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+        #keyboard button:disabled { opacity: 0.6; cursor: not-allowed; transform: translateY(0); box-shadow: none; }
+        #keyboard button.correct { background-color: var(--friendly-green) !important; color: white !important; border-color: #1e7e34 !important; }
+        #keyboard button.incorrect { background-color: var(--friendly-red) !important; color: white !important; border-color: #bd2130 !important; }
+        
+        .game-info { font-size: 1.1rem; margin-bottom: 12px; color: var(--text-light); font-family: 'Nunito', sans-serif; }
+        .game-info span { font-weight: 700; color: var(--text-dark); }
+        #incorrect-guesses-display.has-letters { /* Style for when there are incorrect letters */
+            background-color: rgba(255, 193, 7, 0.1); /* Light yellow tint */
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block; /* To make padding and border-radius work well */
+            min-height: 1.5em; /* Ensure it doesn't jump too much */
+        }
+
+
+        #initial-setup-screen, #game-screen { width: 100%; animation: fadeIn 0.3s ease-out 0.2s backwards; }
+        .instruction-text { font-size: 1.3rem; color: var(--text-dark); margin-bottom: 20px; font-family: 'Patrick Hand', cursive; }
+
+        #start-setup-button, #reset-game-button { 
+            font-family: 'Nunito', sans-serif; font-weight: 800; /* Bolder */
+            font-size: 1.1rem; padding: 12px 25px; border-radius: 25px; /* Pill shape */
+            transition: all 0.2s ease; border: none;
+        }
+        #start-setup-button { background-color: var(--friendly-blue); color: white; }
+        #start-setup-button:hover { background-color: #0069d9; transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
+        #start-setup-button:active { transform: translateY(0) scale(1); }
+
+        #reset-game-button { background-color: var(--friendly-yellow); color: var(--text-dark); margin-top: 15px !important; }
+        #reset-game-button:hover { background-color: #e0a800; transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 10px rgba(255,193,7,0.3); }
+        #reset-game-button:active { transform: translateY(0) scale(1); }
+
+        /* Pass Device Overlay */
+        #pass-device-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 123, 255, 0.85); /* Semi-transparent friendly blue */
+            color: white;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9998; /* Below SweetAlert but above game */
+            text-align: center;
+            font-size: 1.8rem;
+            font-family: 'Patrick Hand', cursive;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #pass-device-overlay p { margin: 10px; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+        #pass-device-overlay .player-tag { font-size: 1.2em; font-weight: bold; }
+
+
+        /* --- Mobile Adjustments --- */
+        @media (max-width: 767px) { 
+            h1.game-title { font-size: 2.2rem; margin-bottom: 20px; animation: none; } /* Disable bounce on smaller screens if too much */
+            #hangman-svg { width: 180px; height: 210px; }
+            #hangman-area { min-height: 210px; margin-bottom: 10px; }
+            #word-display { font-size: 2rem; }
+            #pass-device-overlay { font-size: 1.5rem; }
+        }
+
+        @media (max-width: 576px) {
+            body { padding-top: 10px; padding-bottom: 10px; justify-content: flex-start; }
+            .game-container { padding: 20px 15px; border-radius: 16px; }
+
+            h1.game-title { font-size: 1.8rem; margin-bottom: 10px; }
+            #hangman-area { min-height: 160px; margin-bottom: 5px; }
+            #hangman-svg { width: 140px; height: 160px; }
+            
+            #word-display { font-size: 1.6rem; letter-spacing: 0.25em; margin-bottom: 10px; min-height: 40px; }
+            .game-info { font-size: 0.9rem; margin-bottom: 8px; }
+            #incorrect-guesses-display.has-letters { padding: 1px 4px; }
+
+
+            #keyboard { gap: 5px; margin-top: 10px; }
+            #keyboard button {
+                width: 32px; height: 32px; font-size: 0.85rem; border-radius: 6px;
+                display: flex; align-items: center; justify-content: center; padding: 0;
+            }
+            
+            #reset-game-button, #start-setup-button { font-size: 1rem; padding: 10px 20px; border-radius: 20px; }
+            .instruction-text { font-size: 1.2rem; margin-bottom: 15px; }
+            
+            .swal2-popup { font-size: 0.9em !important; max-width: 90% !important; padding: 1em !important; border-radius: 12px !important; }
+            .swal2-title { font-size: 1.4em !important; padding: 0.6em 0 !important; font-family: 'Patrick Hand', cursive !important; color: var(--friendly-blue) !important;}
+            .swal2-html-container { font-size: 1em !important; margin: 0.6em !important; font-family: 'Nunito', sans-serif !important;}
+            .swal2-input { font-size: 1em !important; height: auto !important; padding: 0.6em !important; margin: 0.6em auto !important; border-radius: 6px !important;}
+            .swal2-actions { margin-top: 1em !important; }
+            .swal2-confirm, .swal2-cancel, .swal2-deny { font-size: 0.95em !important; padding: 0.6em 1.2em !important; margin: 0.3em !important; border-radius: 8px !important; font-family: 'Nunito', sans-serif !important; font-weight: 700 !important;}
+            #pass-device-overlay { font-size: 1.3rem; }
+        }
+        @media (max-width: 360px), (max-height: 600px) and (max-width: 576px) {
+             h1.game-title { font-size: 1.6rem; margin-bottom: 8px; }
+             #hangman-svg { width: 120px; height: 140px; }
+             #hangman-area { min-height: 140px; margin-bottom: 0px;}
+             #word-display { font-size: 1.4rem; letter-spacing: 0.2em; min-height: 35px; margin-bottom: 8px;}
+             #keyboard button { width: 28px; height: 28px; font-size: 0.75rem;}
+             .game-info { font-size: 0.8rem; margin-bottom: 5px; }
+             #keyboard { gap: 4px; margin-top: 8px; }
+             #reset-game-button, #start-setup-button { margin-top: 8px !important; padding: 8px 15px; }
+             #pass-device-overlay { font-size: 1.2rem; }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="pass-device-overlay">
+        <p><span class="player-tag">Player 1,</span></p>
+        <p>Pass the device to</p>
+        <p><span class="player-tag">Player 2!</span></p>
+    </div>
+
+    <div class="game-container">
+        <h1 class="game-title mb-4">Friendly Hangman Fun!</h1>
+
+        <div id="initial-setup-screen">
+            <p class="instruction-text">Hello Word Chef!</p>
+            <button id="start-setup-button" class="btn shadow-sm">Pick a Secret Word</button>
+            <p class="mt-3 fst-italic text-muted small"> (Then let your friend try to guess it!)</p>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <div class="row align-items-center">
+                <div class="col-md-5 text-center" id="hangman-area">
+                    <svg id="hangman-svg" viewBox="0 0 200 250"> 
+                        <line class="figure-part gallow-part" x1="50" y1="230" x2="50" y2="50" />  
+                        <line class="figure-part gallow-part" x1="45" y1="50" x2="155" y2="50" />  
+                        <line class="figure-part rope-part" x1="150" y1="50" x2="150" y2="80" /> 
+                        <circle class="figure-part body-part head" cx="150" cy="100" r="20" /> 
+                        
+                        <!-- Updated Sad Eyes SVG using Q for smoother curves -->
+                        <path class="figure-part game-over-eye" d="M 140 103 Q 145 110 150 103" /> <!-- Left sad eye curve -->
+                        <path class="figure-part game-over-eye" d="M 155 103 Q 160 110 165 103" /> <!-- Right sad eye curve -->
+
+                        <line class="figure-part body-part" x1="150" y1="120" x2="150" y2="180" /> 
+                        <line class="figure-part body-part" x1="150" y1="140" x2="120" y2="160" /> 
+                        <line class="figure-part body-part" x1="150" y1="140" x2="180" y2="160" /> 
+                        <line class="figure-part body-part" x1="150" y1="180" x2="130" y2="210" /> 
+                        <line class="figure-part body-part" x1="150" y1="180" x2="170" y2="210" /> 
+                    </svg>
+                </div>
+                <div class="col-md-7">
+                    <div id="word-display" class="mb-3"></div>
+                    <p class="game-info">Guesses Left: <span id="guesses-remaining">6</span></p>
+                    <p class="game-info">Oopsie Letters: <span id="incorrect-guesses-display"></span></p>
+                </div>
+            </div>
+            
+            <div id="keyboard" class="mt-4"></div>
+            <button id="reset-game-button" class="btn mt-4 shadow-sm" style="display: none;">Play Again!</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            const wordDisplayEl = $('#word-display');
+            const guessesRemainingEl = $('#guesses-remaining');
+            const incorrectGuessesDisplayEl = $('#incorrect-guesses-display');
+            const keyboardEl = $('#keyboard');
+            const gallowAndRopeParts = $('#hangman-svg .gallow-part, #hangman-svg .rope-part');
+            const hangmanBodyPartsOnly = $('#hangman-svg .body-part'); 
+            const gameOverEyes = $('#hangman-svg .game-over-eye');
+            const allStandardParts = $('#hangman-svg .figure-part:not(.game-over-eye)');
+            const passDeviceOverlay = $('#pass-device-overlay');
+
+            const initialSetupScreen = $('#initial-setup-screen');
+            const gameScreen = $('#game-screen');
+            const startSetupButton = $('#start-setup-button');
+            const resetGameButton = $('#reset-game-button');
+
+            let secretWord = '';
+            let guessedLetters = [];
+            let incorrectGuesses = [];
+            let remainingGuesses = 6;
+            const MAX_INCORRECT_GUESSES = 6; 
+
+            const winMessages = ["You did it!", "Awesome Guesser!", "Hooray, You Won!", "Word Champion!", "Super Speller!"];
+            const loseMessages = ["Oh no, try again!", "So close!", "The word was a tricky one!", "Better luck next time!", "Hang in there! (Not literally!)"];
+
+            function showPassDeviceOverlay(duration = 2500) {
+                passDeviceOverlay.css('display', 'flex');
+                setTimeout(() => { passDeviceOverlay.css('opacity', '1'); }, 50); // Slight delay for fade-in
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        passDeviceOverlay.css('opacity', '0');
+                        setTimeout(() => {
+                            passDeviceOverlay.css('display', 'none');
+                            resolve();
+                        }, 500); // Wait for fade-out
+                    }, duration);
+                });
+            }
+
+            function initializeGameScreen() {
+                initialSetupScreen.hide();
+                gameScreen.css('display', 'block'); // Use block for the div
+                resetGameButton.hide();
+                renderKeyboard();
+                renderWordDisplay();
+                updateGuessesDisplay();
+                updateHangmanDrawing(true); 
+            }
+
+            async function getSecretWord() {
+                const { value: word } = await Swal.fire({
+                    title: 'Player 1: Your Secret Word!',
+                    input: 'text',
+                    inputLabel: 'Shhh, don\'t let Player 2 see!',
+                    inputPlaceholder: 'e.g., SUNSHINE, HAPPY, FUNNY',
+                    confirmButtonText: 'Let\'s Go!',
+                    confirmButtonColor: 'var(--friendly-blue)', 
+                    inputValidator: (value) => {
+                        if (!value) return 'Please enter a word!';
+                        if (!/^[a-zA-Z]+$/.test(value)) return 'Only letters, please! (A-Z)';
+                        if (value.length < 3) return 'A bit short! Needs 3+ letters.';
+                        if (value.length > 15) return 'Too long! Max 15 letters.';
+                    },
+                    allowOutsideClick: false, allowEscapeKey: false, showCancelButton: false,
+                    customClass: { popup: 'friendly-swal', title: 'swal-title-custom', htmlContainer: 'swal-html-custom', confirmButton: 'swal-confirm-custom', input: 'swal-input-custom' },
+                    didOpen: () => Swal.getInput().focus()
+                });
+
+                if (word) {
+                    secretWord = word.toUpperCase();
+                    guessedLetters = []; incorrectGuesses = []; remainingGuesses = MAX_INCORRECT_GUESSES;
+                    
+                    // Hide SweetAlert first, then show overlay, then game
+                    Swal.close(); 
+                    await showPassDeviceOverlay();
+                    initializeGameScreen();
+                }
+            }
+
+            function renderKeyboard() {
+                keyboardEl.empty();
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                for (let letter of alphabet) {
+                    const button = $(`<button class="btn m-1">${letter}</button>`); 
+                    button.on('click', () => handleGuess(letter, button));
+                    keyboardEl.append(button);
+                }
+            }
+
+            function renderWordDisplay() {
+                const display = secretWord.split('').map(letter => (guessedLetters.includes(letter) ? letter : '_')).join('');
+                wordDisplayEl.text(display);
+                return display;
+            }
+
+            function updateGuessesDisplay() {
+                guessesRemainingEl.text(remainingGuesses);
+                const incorrectText = incorrectGuesses.join(', ');
+                incorrectGuessesDisplayEl.text(incorrectText);
+                
+                if (incorrectText) {
+                    incorrectGuessesDisplayEl.addClass('has-letters');
+                } else {
+                    incorrectGuessesDisplayEl.removeClass('has-letters');
+                }
+                
+                guessesRemainingEl.removeClass('text-danger text-warning text-success fw-bolder');
+                // No need to clear color for incorrectGuessesDisplayEl as its span content is colored
+
+                if (remainingGuesses <= MAX_INCORRECT_GUESSES / 3) { 
+                    guessesRemainingEl.addClass('text-danger fw-bolder');
+                } else if (remainingGuesses <= (MAX_INCORRECT_GUESSES / 3) * 2) { 
+                    guessesRemainingEl.addClass('text-warning');
+                } else { 
+                    guessesRemainingEl.addClass('text-success');
+                }
+            }
+            
+            function updateHangmanDrawing(reset = false) {
+                if (reset) {
+                    allStandardParts.css('opacity', '0'); 
+                    gallowAndRopeParts.css('opacity', '1'); 
+                    gameOverEyes.css('display', 'none').css('opacity', '0'); 
+                }
+
+                const incorrectCount = incorrectGuesses.length;
+                hangmanBodyPartsOnly.each(function(index) { 
+                    if (index < incorrectCount) {
+                        $(this).css('opacity', '1');
+                    } else if (reset) { 
+                         $(this).css('opacity', '0');
+                    }
+                });
+            }
+
+            function handleGuess(letter, button) {
+                if (guessedLetters.includes(letter) || remainingGuesses === 0 || secretWord.split('').every(l => guessedLetters.includes(l))) {
+                     if (guessedLetters.includes(letter) && !button.prop('disabled')) {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Already guessed!', showConfirmButton: false, timer: 1500, timerProgressBar: true, customClass: { popup: 'friendly-swal-toast swal-toast-override' } }); // Added a class for potential specific toast styling
+                     }
+                    return; 
+                }
+
+                guessedLetters.push(letter);
+                button.prop('disabled', true);
+
+                if (secretWord.includes(letter)) {
+                    button.addClass('correct');
+                    renderWordDisplay();
+                    checkWin();
+                } else {
+                    button.addClass('incorrect');
+                    incorrectGuesses.push(letter);
+                    remainingGuesses--;
+                    updateGuessesDisplay();
+                    updateHangmanDrawing();
+                    checkLoss();
+                }
+            }
+
+            function checkWin() {
+                if (!renderWordDisplay().includes('_')) gameOver(true);
+            }
+
+            function checkLoss() {
+                if (remainingGuesses === 0) gameOver(false);
+            }
+
+            function gameOver(isWin) {
+                keyboardEl.find('button').prop('disabled', true);
+                resetGameButton.show();
+                let titleText = isWin ? winMessages[Math.floor(Math.random() * winMessages.length)] : loseMessages[Math.floor(Math.random() * loseMessages.length)];
+                let iconType = isWin ? 'success' : 'error';
+                let confirmBtnColor = isWin ? 'var(--friendly-green)' : 'var(--friendly-red)';
+
+                if (!isWin) {
+                    hangmanBodyPartsOnly.css('opacity', '1'); 
+                    gameOverEyes.css('display', 'block').css('opacity', '1'); 
+                }
+
+                Swal.fire({
+                    title: titleText,
+                    html: `The word was: <strong class="${isWin ? 'text-success' : 'text-danger'} fs-5" style="font-family: 'Patrick Hand', cursive;">${secretWord}</strong>`,
+                    icon: iconType,
+                    confirmButtonText: isWin ? 'Yay!' : 'Okay',
+                    confirmButtonColor: confirmBtnColor,
+                    customClass: { popup: 'friendly-swal', title: 'swal-title-custom', htmlContainer: 'swal-html-custom', confirmButton: 'swal-confirm-custom' }
+                });
+
+                if (isWin) {
+                    confetti({ particleCount: 180, spread: 90, origin: { y: 0.55 }, zIndex: 10000 });
+                }
+            }
+
+            function resetGame() {
+                initialSetupScreen.show();
+                gameScreen.hide();
+                guessesRemainingEl.removeClass('text-danger text-warning fw-bolder').addClass('text-success');
+                incorrectGuessesDisplayEl.removeClass('has-letters').text('');
+            }
+
+            startSetupButton.on('click', getSecretWord);
+            resetGameButton.on('click', resetGame);
+
+            initialSetupScreen.show();
+            gameScreen.hide();
+            updateGuessesDisplay(); // Call to set initial colors and state
+
+
+            
+        });
+    </script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(error => {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+        });
+    }
+</script>
+
+</body>
+</html>
