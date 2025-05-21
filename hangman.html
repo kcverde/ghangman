@@ -54,7 +54,7 @@
 
         .game-container {
             background-color: var(--container-bg); 
-            padding: 25px;
+            padding: 35px 25px; /* Increased padding */
             border-radius: 20px; 
             box-shadow: 0 10px 30px rgba(0, 91, 171, 0.15); 
             width: 100%; 
@@ -68,7 +68,7 @@
             font-family: 'Patrick Hand', cursive;
             color: var(--friendly-blue); 
             font-size: 2.8rem; 
-            margin-bottom: 25px; 
+            margin-bottom: 30px; /* Increased margin */
             animation: titleBounce 1.5s ease-in-out 0.3s; /* Bounce on load */
         }
 
@@ -89,13 +89,13 @@
         
         #word-display {
             font-family: 'Patrick Hand', cursive; 
-            font-size: 2.5rem; letter-spacing: 0.4em; margin-bottom: 20px; 
+            font-size: 2.5rem; letter-spacing: 0.4em; margin-bottom: 20px; /* mb-3 class removed from HTML */
             font-weight: normal; color: var(--text-dark); min-height: 50px; 
         }
 
-        #keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+        #keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; } /* Adjusted gap */
         #keyboard button {
-            width: 42px; height: 42px; font-size: 1.1rem; border-radius: 8px;
+            width: 44px; height: 44px; font-size: 1.1rem; border-radius: 8px; /* Adjusted size */
             font-family: 'Nunito', sans-serif; font-weight: 700;
             background-color: var(--button-light-bg); border: 1px solid var(--border-light); color: var(--text-dark);
             transition: all 0.2s ease-in-out, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; /* Added transitions for state change */
@@ -114,14 +114,14 @@
         #keyboard button.correct { background-color: var(--friendly-green) !important; color: white !important; border-color: #1e7e34 !important; }
         #keyboard button.incorrect { background-color: var(--friendly-red) !important; color: white !important; border-color: #bd2130 !important; }
         
-        .game-info { font-size: 1.1rem; margin-bottom: 12px; color: var(--text-light); font-family: 'Nunito', sans-serif; }
+        .game-info { font-size: 1.1rem; margin-bottom: 10px; color: var(--text-light); font-family: 'Nunito', sans-serif; } /* Adjusted margin */
         .game-info span { font-weight: 700; color: var(--text-dark); }
         #incorrect-guesses-display.has-letters { /* Style for when there are incorrect letters */
             background-color: rgba(255, 193, 7, 0.1); /* Light yellow tint */
             padding: 2px 6px;
             border-radius: 4px;
             display: inline-block; /* To make padding and border-radius work well */
-            min-height: 1.5em; /* Ensure it doesn't jump too much */
+            /* min-height: 1.5em; removed to simplify and accept minor height change from padding */
         }
 
 
@@ -164,7 +164,7 @@
 
         /* --- Mobile Adjustments --- */
         @media (max-width: 767px) { 
-            h1.game-title { font-size: 2.2rem; margin-bottom: 20px; animation: none; } /* Disable bounce on smaller screens if too much */
+            h1.game-title { font-size: 2.2rem; margin-bottom: 25px; animation: none; } /* Disable bounce on smaller screens if too much */
             #hangman-svg { width: 180px; height: 210px; }
             #hangman-area { min-height: 210px; margin-bottom: 10px; }
             #word-display { font-size: 2rem; }
@@ -173,10 +173,10 @@
 
         @media (max-width: 576px) {
             body { padding-top: 10px; padding-bottom: 10px; justify-content: flex-start; }
-            .game-container { padding: 20px 15px; border-radius: 16px; }
+            .game-container { padding: 25px 15px; border-radius: 16px; } /* Increased padding */
 
-            h1.game-title { font-size: 1.8rem; margin-bottom: 10px; }
-            #hangman-area { min-height: 160px; margin-bottom: 5px; }
+            h1.game-title { font-size: 1.8rem; margin-bottom: 20px; } /* Increased margin */
+            #hangman-area { min-height: 160px; margin-bottom: 15px; } /* Adjusted margin-bottom */
             #hangman-svg { width: 140px; height: 160px; }
             
             #word-display { font-size: 1.6rem; letter-spacing: 0.25em; margin-bottom: 10px; min-height: 40px; }
@@ -184,9 +184,9 @@
             #incorrect-guesses-display.has-letters { padding: 1px 4px; }
 
 
-            #keyboard { gap: 5px; margin-top: 10px; }
+            #keyboard { gap: 6px; margin-top: 10px; } /* Adjusted gap */
             #keyboard button {
-                width: 32px; height: 32px; font-size: 0.85rem; border-radius: 6px;
+                width: 36px; height: 36px; font-size: 0.85rem; border-radius: 6px; /* Adjusted size */
                 display: flex; align-items: center; justify-content: center; padding: 0;
             }
             
@@ -202,13 +202,13 @@
             #pass-device-overlay { font-size: 1.3rem; }
         }
         @media (max-width: 360px), (max-height: 600px) and (max-width: 576px) {
-             h1.game-title { font-size: 1.6rem; margin-bottom: 8px; }
+             h1.game-title { font-size: 1.6rem; margin-bottom: 15px; } /* Increased margin */
              #hangman-svg { width: 120px; height: 140px; }
-             #hangman-area { min-height: 140px; margin-bottom: 0px;}
+             #hangman-area { min-height: 140px; margin-bottom: 10px;} /* Adjusted margin-bottom */
              #word-display { font-size: 1.4rem; letter-spacing: 0.2em; min-height: 35px; margin-bottom: 8px;}
-             #keyboard button { width: 28px; height: 28px; font-size: 0.75rem;}
+             #keyboard button { width: 30px; height: 30px; font-size: 0.75rem;} /* Adjusted size */
              .game-info { font-size: 0.8rem; margin-bottom: 5px; }
-             #keyboard { gap: 4px; margin-top: 8px; }
+             #keyboard { gap: 5px; margin-top: 8px; } /* Adjusted gap */
              #reset-game-button, #start-setup-button { margin-top: 8px !important; padding: 8px 15px; }
              #pass-device-overlay { font-size: 1.2rem; }
         }
@@ -223,7 +223,7 @@
     </div>
 
     <div class="game-container">
-        <h1 class="game-title mb-4">Friendly Hangman Fun!</h1>
+        <h1 class="game-title">Friendly Hangman Fun!</h1>
 
         <div id="initial-setup-screen">
             <p class="instruction-text">Hello Word Chef!</p>
@@ -252,13 +252,13 @@
                     </svg>
                 </div>
                 <div class="col-md-7">
-                    <div id="word-display" class="mb-3"></div>
+                    <div id="word-display"></div> {/* mb-3 class removed */}
                     <p class="game-info">Guesses Left: <span id="guesses-remaining">6</span></p>
                     <p class="game-info">Oopsie Letters: <span id="incorrect-guesses-display"></span></p>
                 </div>
             </div>
             
-            <div id="keyboard" class="mt-4"></div>
+            <div id="keyboard"></div> {/* mt-4 class removed */}
             <button id="reset-game-button" class="btn mt-4 shadow-sm" style="display: none;">Play Again!</button>
         </div>
     </div>
